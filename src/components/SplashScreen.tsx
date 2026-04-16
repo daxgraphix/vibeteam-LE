@@ -38,15 +38,66 @@ const modeOptions: ModeOption[] = [
 
 const avatars = ['🦊', '🐼', '🦁', '🐯', '🐨', '🐰', '🐸', '🦄'];
 
+const STORAGE_KEY = 'vibeteam_user_data';
+
+interface SavedUserData {
+  mode: ModeType;
+  playerNames: { name: string; avatar: string }[];
+  teamName: string;
+  teams: { name: string; color: string }[];
+}
+
+function loadSavedData(): SavedUserData | null {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      return JSON.parse(saved);
+    }
+  } catch (e) {
+    console.error('Failed to load saved data:', e);
+  }
+  return null;
+}
+
+function saveUserData(data: SavedUserData) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  } catch (e) {
+    console.error('Failed to save data:', e);
+  }
+}
+
 export function SplashScreen({ onComplete }: SplashScreenProps) {
   const [showModeSelect, setShowModeSelect] = useState(false);
   const [selectedMode, setSelectedMode] = useState<ModeType | null>(null);
-  const [playerNames, setPlayerNames] = useState<string[]>([{ name: '', avatar: avatars[0] }]);
-  const [teamName, setTeamName] = useState('');
-  const [teams, setTeams] = useState<{ name: string; color: string }[]>([
-    { name: '', color: 'bg-red-500' },
-    { name: '', color: 'bg-blue-500' }
-  ]);
+  const [playerNames, setPlayerNames] = useState<string[]>(() => {
+    const saved = loadSavedData();
+    if (saved && saved.mode === 'INDIVIDUAL' && saved.playerNames.length > 0) {
+      return saved.playerNames.map(p => p.name).filter(n => n.trim() !== '');
+    }
+    return [{ name: '', avatar: avatars[0] }];
+  });
+  const [playerAvatars, setPlayerAvatars] = useState<string[]>(() => {
+    const saved = loadSavedData();
+    if (saved && saved.mode === 'INDIVIDUAL') {
+      return saved.playerNames.map(p => p.avatar || avatars[0]);
+    }
+    return [avatars[0]];
+  });
+  const [teamName, setTeamName] = useState(() => {
+    const saved = loadSavedData();
+    return saved?.teamName || '';
+  });
+  const [teams, setTeams] = useState<{ name: string; color: string }[]>(() => {
+    const saved = loadSavedData();
+    if (saved && saved.mode === 'TEAM' && saved.teams.length > 0) {
+      return saved.teams;
+    }
+    return [
+      { name: '', color: 'bg-red-500' },
+      { name: '', color: 'bg-blue-500' }
+    ];
+  });
   const [showTeamSetup, setShowTeamSetup] = useState(false);
 
   const handleModeSelect = (mode: ModeType) => {

@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 import { GameMode, Theme, Difficulty, Team, Player, Mission } from '../types';
 import { INITIAL_MISSIONS } from '../constants';
+import { useLocalStorage } from '../hooks/useLocalStorage';
 
 interface GameContextType {
   mode: GameMode | null;
@@ -21,12 +22,40 @@ interface GameContextType {
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
 
+const DEFAULT_PLAYER: Player = {
+  id: 'player-1',
+  name: 'Player',
+  score: 0,
+  xp: 0,
+  level: 1,
+  wins: 0,
+  streak: 0,
+  avatar: '👤',
+  badges: [],
+  stats: {
+    totalGames: 0,
+    totalWins: 0,
+    totalXP: 0,
+    currentLevel: 1,
+    longestStreak: 0,
+    accuracy: 0,
+    totalQuestions: 0,
+    correctAnswers: 0,
+    coins: 0,
+    badges: [],
+    achievements: [],
+    tournamentsWon: 0,
+    bossesDefeated: 0,
+    chaptersCompleted: 0,
+  },
+};
+
 export function GameProvider({ children }: { children: ReactNode }) {
+  const [theme, setTheme] = useLocalStorage<Theme>('vibeteam_theme', 'dark');
+  const [difficulty, setDifficulty] = useLocalStorage<Difficulty>('vibeteam_difficulty', 'MEDIUM');
   const [mode, setMode] = useState<GameMode | null>(null);
-  const [theme, setTheme] = useState<Theme>('dark');
-  const [difficulty, setDifficulty] = useState<Difficulty>('MEDIUM');
   const [teams, setTeams] = useState<Team[]>([]);
-  const [players, setPlayers] = useState<Player[]>([]);
+  const [players, setPlayers] = useLocalStorage<Player[]>('vibeteam_players', [DEFAULT_PLAYER]);
   const [missions, setMissions] = useState<Mission[]>(INITIAL_MISSIONS);
 
   const toggleTheme = useCallback(() => {

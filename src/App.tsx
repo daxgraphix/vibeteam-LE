@@ -1302,95 +1302,193 @@ function App() {
                   </>
                 )}
 
-                {/* Rapid Fire - Flashcard Style */}
-                {activeGame === 'rapid-fire' && questionData && (
-                  <>
-                    <div className="flex items-center justify-center gap-2 mb-4">
-                      <Zap size={24} className="text-emerald-500" />
-                      <span className="text-emerald-500 font-black text-sm uppercase">Quick Question</span>
-                    </div>
-                    <div className={`p-12 rounded-3xl mb-6 ${theme === 'dark' ? 'bg-zinc-800' : 'bg-white'} shadow-xl`}>
-                      <h2 className={`text-4xl font-black text-center ${theme === 'dark' ? 'text-white' : 'text-zinc-900'}`}>
-                        {(questionData as { question: string }).question}
-                      </h2>
-                    </div>
-                    
-                    {!showResult ? (
-                      <button 
-                        onClick={revealAnswer}
-                        className="px-12 py-4 bg-emerald-500 text-white rounded-2xl font-black text-xl hover:bg-emerald-600 transition-colors"
-                      >
-                        Show Answer
-                      </button>
-                    ) : (
-                      <motion.div 
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="space-y-4"
-                      >
-                        <div className="p-6 bg-emerald-500/20 rounded-2xl">
-                          <p className="text-emerald-500 font-black text-3xl text-center">
-                            {(questionData as { answer: string }).answer}
-                          </p>
+                {/* Rapid Fire - Multiple Choice or Reveal */}
+                {activeGame === 'rapid-fire' && questionData && (() => {
+                  const qData = questionData as Question;
+                  const hasOptions = qData.options && qData.options.length > 0;
+                  const correctAnswer = qData.answer;
+                  
+                  return (
+                    <>
+                      <div className="flex items-center justify-center gap-2 mb-4">
+                        <Zap size={24} className="text-emerald-500" />
+                        <span className="text-emerald-500 font-black text-sm uppercase">Quick Question</span>
+                      </div>
+                      <div className={`p-8 rounded-3xl mb-6 ${theme === 'dark' ? 'bg-zinc-800' : 'bg-white'} shadow-xl`}>
+                        <h2 className={`text-2xl font-bold text-center ${theme === 'dark' ? 'text-white' : 'text-zinc-900'}`}>
+                          {qData.question}
+                        </h2>
+                      </div>
+                      
+                      {hasOptions ? (
+                        <div className="grid grid-cols-2 gap-3 mb-4">
+                          {qData.options.map((option, idx) => (
+                            <button
+                              key={idx}
+                              onClick={() => handleAnswer(option)}
+                              disabled={showResult}
+                              className={`p-4 rounded-2xl font-bold text-lg transition-all ${
+                                showResult
+                                  ? option === correctAnswer
+                                    ? 'bg-emerald-500 text-white'
+                                    : selectedAnswer === option
+                                    ? 'bg-red-500 text-white'
+                                    : theme === 'dark'
+                                    ? 'bg-zinc-700 text-zinc-400'
+                                    : 'bg-zinc-100 text-zinc-500'
+                                  : selectedAnswer === option
+                                  ? theme === 'dark'
+                                    ? 'bg-emerald-600 text-white'
+                                    : 'bg-emerald-500 text-white'
+                                  : theme === 'dark'
+                                  ? 'bg-zinc-700 text-white hover:bg-zinc-600'
+                                  : 'bg-zinc-100 text-zinc-900 hover:bg-zinc-200'
+                              }`}
+                            >
+                              {option}
+                            </button>
+                          ))}
                         </div>
-                        <button 
-                          onClick={() => {
-                            setShowResult(false);
-                            nextQuestion();
-                          }}
-                          className="px-12 py-4 bg-emerald-500 text-white rounded-2xl font-black text-xl hover:bg-emerald-600 transition-colors w-full"
-                        >
-                          Next Question →
-                        </button>
-                      </motion.div>
-                    )}
-                  </>
-                )}
+                      ) : (
+                        <div className="text-center">
+                          <p className={`text-sm mb-4 ${theme === 'dark' ? 'text-zinc-400' : 'text-zinc-500'}`}>
+                            Type your answer below:
+                          </p>
+                          <input
+                            type="text"
+                            placeholder="Type answer..."
+                            className={`w-full p-4 rounded-2xl text-center text-xl font-bold mb-4 ${
+                              theme === 'dark' 
+                                ? 'bg-zinc-800 text-white border border-zinc-700' 
+                                : 'bg-white text-zinc-900 border border-zinc-200'
+                            }`}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                const input = e.currentTarget.value;
+                                if (input.trim()) {
+                                  handleAnswer(input.trim());
+                                }
+                              }
+                            }}
+                          />
+                        </div>
+                      )}
+                      
+                      <div className="flex gap-3 justify-center flex-wrap">
+                        {!showResult ? (
+                          <>
+                            <button 
+                              onClick={revealAnswer}
+                              className="px-8 py-3 bg-zinc-500 text-white rounded-2xl font-bold hover:bg-zinc-600 transition-colors"
+                            >
+                              Skip / Reveal
+                            </button>
+                          </>
+                        ) : (
+                          <button 
+                            onClick={() => {
+                              setShowResult(false);
+                              nextQuestion();
+                            }}
+                            className="px-12 py-4 bg-emerald-500 text-white rounded-2xl font-black text-xl hover:bg-emerald-600 transition-colors w-full"
+                          >
+                            Next Question →
+                          </button>
+                        )}
+                      </div>
+                    </>
+                  );
+                })()}
 
-                {/* Brain Teasers - Flashcard Style */}
-                {activeGame === 'brain-teasers' && questionData && (
-                  <>
-                    <div className="flex items-center justify-center gap-2 mb-4">
-                      <Sparkles size={24} className="text-amber-500" />
-                      <span className="text-amber-500 font-black text-sm uppercase">Brain Teaser</span>
-                    </div>
-                    <div className={`p-8 rounded-3xl mb-6 ${theme === 'dark' ? 'bg-zinc-800' : 'bg-white'} shadow-xl`}>
-                      <h2 className={`text-2xl font-bold text-center italic ${theme === 'dark' ? 'text-white' : 'text-zinc-900'}`}>
-                        "{(questionData as { riddle: string }).riddle}"
-                      </h2>
-                    </div>
-                    
-                    {!showResult ? (
-                      <button 
-                        onClick={revealAnswer}
-                        className="px-12 py-4 bg-amber-500 text-white rounded-2xl font-black text-xl hover:bg-amber-600 transition-colors"
-                      >
-                        Reveal Answer
-                      </button>
-                    ) : (
-                      <motion.div 
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="space-y-4"
-                      >
-                        <div className="p-6 bg-amber-500/20 rounded-2xl">
-                          <p className="text-amber-500 font-black text-xl text-center">
-                            {(questionData as { answer: string }).answer}
+                {/* Brain Teasers - Multiple Choice or Reveal */}
+                {activeGame === 'brain-teasers' && questionData && (() => {
+                  const qData = questionData as unknown as { riddle: string; answer: string; options?: string[] };
+                  const hasOptions = qData.options && qData.options.length > 0;
+                  const correctAnswer = qData.answer;
+                  
+                  return (
+                    <>
+                      <div className="flex items-center justify-center gap-2 mb-4">
+                        <Sparkles size={24} className="text-amber-500" />
+                        <span className="text-amber-500 font-black text-sm uppercase">Brain Teaser</span>
+                      </div>
+                      <div className={`p-8 rounded-3xl mb-6 ${theme === 'dark' ? 'bg-zinc-800' : 'bg-white'} shadow-xl`}>
+                        <h2 className={`text-xl font-bold text-center italic ${theme === 'dark' ? 'text-white' : 'text-zinc-900'}`}>
+                          "{qData.riddle}"
+                        </h2>
+                      </div>
+                      
+                      {hasOptions ? (
+                        <div className="grid grid-cols-1 gap-3 mb-4">
+                          {qData.options.map((option, idx) => (
+                            <button
+                              key={idx}
+                              onClick={() => handleAnswer(option)}
+                              disabled={showResult}
+                              className={`p-4 rounded-2xl font-bold text-lg transition-all ${
+                                showResult
+                                  ? option === correctAnswer
+                                    ? 'bg-emerald-500 text-white'
+                                    : selectedAnswer === option
+                                    ? 'bg-red-500 text-white'
+                                    : theme === 'dark'
+                                    ? 'bg-zinc-700 text-zinc-400'
+                                    : 'bg-zinc-100 text-zinc-500'
+                                  : selectedAnswer === option
+                                  ? theme === 'dark'
+                                    ? 'bg-amber-600 text-white'
+                                    : 'bg-amber-500 text-white'
+                                  : theme === 'dark'
+                                  ? 'bg-zinc-700 text-white hover:bg-zinc-600'
+                                  : 'bg-zinc-100 text-zinc-900 hover:bg-zinc-200'
+                              }`}
+                            >
+                              {option}
+                            </button>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center">
+                          <p className={`text-sm mb-4 ${theme === 'dark' ? 'text-zinc-400' : 'text-zinc-500'}`}>
+                            Can you solve this riddle?
                           </p>
                         </div>
-                        <button 
-                          onClick={() => {
-                            setShowResult(false);
-                            nextQuestion();
-                          }}
-                          className="px-12 py-4 bg-amber-500 text-white rounded-2xl font-black text-xl hover:bg-amber-600 transition-colors w-full"
-                        >
-                          Next Riddle →
-                        </button>
-                      </motion.div>
-                    )}
-                  </>
-                )}
+                      )}
+                      
+                      <div className="flex gap-3 justify-center flex-wrap">
+                        {!showResult ? (
+                          <button 
+                            onClick={revealAnswer}
+                            className="px-12 py-4 bg-amber-500 text-white rounded-2xl font-black text-xl hover:bg-amber-600 transition-colors"
+                          >
+                            Reveal Answer
+                          </button>
+                        ) : (
+                          <motion.div 
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="space-y-4 w-full"
+                          >
+                            <div className="p-6 bg-amber-500/20 rounded-2xl">
+                              <p className="text-amber-500 font-black text-xl text-center">
+                                {qData.answer}
+                              </p>
+                            </div>
+                            <button 
+                              onClick={() => {
+                                setShowResult(false);
+                                nextQuestion();
+                              }}
+                              className="px-12 py-4 bg-amber-500 text-white rounded-2xl font-black text-xl hover:bg-amber-600 transition-colors w-full"
+                            >
+                              Next Riddle →
+                            </button>
+                          </motion.div>
+                        )}
+                      </div>
+                    </>
+                  );
+                })()}
 
                 {/* Word Difference - Flashcard style with manual controls */}
                 {activeGame === 'word-difference' && questionData && (

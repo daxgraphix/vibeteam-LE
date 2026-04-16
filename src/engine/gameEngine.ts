@@ -583,12 +583,15 @@ function getQuestionText(q: ValidatableQuestion): string {
 }
 
 /**
- * Check if an answer is valid (exists in the options array)
+ * Check if an answer is valid (exists in the options array or is a valid open-ended answer)
  * @param question - Question object to validate
  * @returns Boolean indicating if the answer is valid
  */
 export function isAnswerValid(question: ValidatableQuestion): boolean {
-  if (!question.options || !question.answer) return false;
+  // If no options, accept any non-empty answer (for open-ended questions like brain teasers)
+  if (!question.options || question.options.length === 0) {
+    return !!question.answer && question.answer.trim().length > 0;
+  }
 
   // Check if answer exists in options (case-insensitive comparison)
   return question.options.some(
